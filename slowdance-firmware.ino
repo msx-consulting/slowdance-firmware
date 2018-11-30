@@ -14,6 +14,8 @@
 // Run "make" in the sketch directory if it's missing
 #include "waveform.h"
 
+#define F_CPU 8000000
+
 // Pin definitions
 const int PIN_ENABLE = PD7;
 const int PIN_COIL1 = PD4;
@@ -47,7 +49,7 @@ const int TIMER1_PRESCALE = 8;
 const int ZEROPOINT = (long) TIMER_TOP_PDM * (WAVEFORM_SIZE + 1) / TIMER1_PRESCALE * 2;
 
 volatile int strobeWait = ZEROPOINT;
-volatile int strobeBrightness = 200; // Length of strobe = brightness
+volatile int strobeBrightness = 100; // Length of strobe = brightness
 unsigned int cycleCounter = 0; // How many cycles we have completed
 unsigned int buttonDisableTimer = 0;
 
@@ -121,7 +123,7 @@ ISR(TIMER1_COMPB_vect) {
 void setBrightness() {
   ADCSRA |= (1 << ADSC); // Start an ADC conversion
   while (ADCSRA & (1 << ADSC)) {} // Wait for the conversion to end
-  strobeBrightness = 2 * (0x3ff - ADC) + 200; // Calculate brightness
+  strobeBrightness = 2 * (0x3ff - ADC) + 100; // Calculate brightness
 }
 
 void gotoNextMode() {
@@ -181,13 +183,13 @@ float calculateWaitFromMode() {
     }
 #endif
     case ANIM_SLOW: {
-      return ZEROPOINT + 80.0;
+      return ZEROPOINT + 40.0;
     }
     case ANIM_MEDIUM: {
-      return ZEROPOINT + 120.0;
+      return ZEROPOINT + 60.0;
     }
     case ANIM_POPLOCK: {
-      static int zpt = ZEROPOINT - 8;
+      static int zpt = ZEROPOINT - 4;
       static int poplockCounter = 0;
 
       if(poplockCounter++ == 15) {
@@ -200,7 +202,7 @@ float calculateWaitFromMode() {
     case ANIM_DOUBLER: {
       strobeBrightness /= 2;
       float animationPhase = (float)cycleCounter / 3000.0f;
-      return ZEROPOINT * 0.5 + 100.0 * sin(animationPhase);
+      return ZEROPOINT * 0.5 + 50.0 * sin(animationPhase);
     }
     case ANIM_OFF: {
       // Turning off electromagnet and strobe is done at the transition (in gotoNextMode)
@@ -215,7 +217,7 @@ float calculateWaitFromMode() {
 
 void startDancing() {
   // Enable electromagnet drive
-  TCCR0B |= (TIMER0_CLOCK_BITS << CS00); // Phase correct mode, clk/8, start the clock!
+  TCCR0B |= (TIMER0_CLOCK_BITS << CS00); // Phase correct mode, clk/1, start the clock!
   PORTD |= (1 << PIN_ENABLE); // Enable H bridge driver for electromagnet
 
   // Enable light strobing
@@ -225,7 +227,7 @@ void startDancing() {
 
 void stopDancing() {
   // Disable electromagnet drive
-  TCCR0B &= ~(1 << CS01); // Phase correct mode, clk/8, start the clock!
+  TCCR0B &= ~(1 << CS01); // Phase correct mode, clk/1, start the clock!
   PORTD &= ~(1 << PIN_ENABLE);
 
   // Disable light strobing
@@ -264,12 +266,26 @@ void setup() {
   DIDR0 = (1 << ADC1D); // Disable digital input buffer for the analog (brightness) input
 
   // Setup ADC
-  ADMUX = (1 << REFS0) | (0 << ADLAR) | (1 << MUX0); // VCC/5v ref, right adjust, connect ADC1
-  ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADPS1) | (1 << ADPS0); // ADC clock: clk/8, enable
+  ADMUX = (1 << REFS0) | (0 << ADLAR) | (1 << MUX0); // VCC/5v ref, right adjust, connect ADC0
+  ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADPS1); // ADC clock: clk/4, enable
 
   // Start with light off
   PORTB &= ~(1 << PIN_LIGHT);
 
+  // Set all unused pins as inputs with pull-ups
+  DDRC &= ~((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
+  DDRD &= ~((1 << PD2) | (1 << PD3) | (1 << PD6));
+
+  PORTC |= ((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
+  PORTD |= ((1 << PD2) | (1 << PD3) | (1 << PD6));
+
+  // Aditional unconnected pins as inputs with pull-ups
+  DDRB &= ~((1 << PB0) | (1 << PB1) | (1 << PB3) | (1 << PB4) | (1 << PB5));
+  DDRD &= ~((1 << PD0) | (1 << PD1));
+
+  PORTB |= ((1 << PB0) | (1 << PB1) | (1 << PB3) | (1 << PB4) | (1 << PB5));
+  PORTD |= ((1 << PD0) | (1 << PD1));
+  
   setupTimers();
 }
 

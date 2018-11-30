@@ -1,0 +1,7 @@
+Disabled unused/unconnected pins
+Updated to use internal 8MHz clock; update F_CPU to reflect this
+Initialized strobeBrightness = 100 instead of 200
+Changed strobeBrightness calculation in setBrightness() to add 100 instead of 200
+Halved all addition/subtraction calculations in calculateWaitFromMode(); left multiplication/division alone
+Change ADCSRA to set ADC clock to clk/4 instead of clk/8
+Minor comment updates
