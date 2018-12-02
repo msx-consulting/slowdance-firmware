@@ -14,7 +14,11 @@
 // Run "make" in the sketch directory if it's missing
 #include "waveform.h"
 
-#define F_CPU 8000000
+// Set to 8MHz (even if board.txt incorrect)
+#ifdef F_CPU
+#undef F_CPU
+#endif
+#define F_CPU 8000000 // 8 MHz
 
 // Pin definitions
 const int PIN_ENABLE = PD7;
@@ -123,7 +127,7 @@ ISR(TIMER1_COMPB_vect) {
 void setBrightness() {
   ADCSRA |= (1 << ADSC); // Start an ADC conversion
   while (ADCSRA & (1 << ADSC)) {} // Wait for the conversion to end
-  strobeBrightness = 2 * (0x3ff - ADC) + 100; // Calculate brightness
+  strobeBrightness = 1 * (0x3ff - ADC) + 100; // Calculate brightness
 }
 
 void gotoNextMode() {
@@ -192,7 +196,7 @@ float calculateWaitFromMode() {
       static int zpt = ZEROPOINT - 4;
       static int poplockCounter = 0;
 
-      if(poplockCounter++ == 15) {
+      if(poplockCounter++ == 7) {
         poplockCounter = 0;
         return zpt * 1.02;
       }
@@ -285,7 +289,7 @@ void setup() {
 
   PORTB |= ((1 << PB0) | (1 << PB1) | (1 << PB3) | (1 << PB4) | (1 << PB5));
   PORTD |= ((1 << PD0) | (1 << PD1));
-  
+
   setupTimers();
 }
 
