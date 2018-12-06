@@ -187,18 +187,18 @@ float calculateWaitFromMode() {
     }
 #endif
     case ANIM_SLOW: {
-      return ZEROPOINT + 40.0;
+      return ZEROPOINT + 20.0;
     }
     case ANIM_MEDIUM: {
-      return ZEROPOINT + 60.0;
+      return ZEROPOINT + 50.0;
     }
     case ANIM_POPLOCK: {
-      static int zpt = ZEROPOINT - 4;
+      static int zpt = ZEROPOINT;
       static int poplockCounter = 0;
 
-      if(poplockCounter++ == 7) {
+      if(poplockCounter++ == 18) {
         poplockCounter = 0;
-        return zpt * 1.02;
+        return zpt * 1.025;
       }
 
       return zpt;
@@ -206,7 +206,7 @@ float calculateWaitFromMode() {
     case ANIM_DOUBLER: {
       strobeBrightness /= 2;
       float animationPhase = (float)cycleCounter / 3000.0f;
-      return ZEROPOINT * 0.5 + 50.0 * sin(animationPhase);
+      return ZEROPOINT * 0.5 + 35.0 * sin(animationPhase);
     }
     case ANIM_OFF: {
       // Turning off electromagnet and strobe is done at the transition (in gotoNextMode)
