@@ -4,6 +4,7 @@
 // - Josh Gordonson
 // - Owen Trueblood
 // - Jeff Lieberman
+// - Matt Staniszewski
 
 #include <math.h>
 #include "avr/pgmspace.h"
@@ -15,9 +16,9 @@
 #include "waveform.h"
 
 // Pin definitions
-const int PIN_ENABLE = PD7;
-const int PIN_COIL1 = PD4;
-const int PIN_COIL2 = PD5;
+const int PIN_ENABLE = PD2;
+const int PIN_COIL1 = PD3;
+const int PIN_COIL2 = PD4;
 const int PIN_LIGHT = PB2;
 const int PIN_MODE_BUTTON = PC0;
 const int PIN_BRIGHTNESS_POT = PC1;
