@@ -271,6 +271,15 @@ void setup() {
   // Start with light off
   PORTB &= ~(1 << PIN_LIGHT);
 
+  // Set all unused pins as inputs with pull-ups
+  DDRB &= ~((1 << PB0) | (1 << PB1) | (1 << PB3) | (1 << PB4) | (1 << PB5));
+  DDRC &= ~((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
+  DDRD &= ~((1 << PD0) | (1 << PD1) | (1 << PD5) | (1 << PD6) | (1 << PD7));
+
+  PORTB |= ((1 << PB0) | (1 << PB1) | (1 << PB3) | (1 << PB4) | (1 << PB5));
+  PORTC |= ((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
+  PORTD |= ((1 << PD0) | (1 << PD1) | (1 << PD5) | (1 << PD6) | (1 << PD7));
+
   setupTimers();
 }
 
