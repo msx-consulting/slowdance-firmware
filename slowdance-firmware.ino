@@ -8,6 +8,7 @@
 
 #include <math.h>
 #include "avr/pgmspace.h"
+#include "avr/eeprom.h"
 
 #include "util.h"
 
@@ -54,6 +55,9 @@ unsigned int buttonDisableTimer = 0;
 
 // Length of time the button is disabled after being pressed
 const int BUTTON_DISABLE_TICKS = 40; // Cycles @ 80 Hz
+
+// EEPROM address for saved animation mode
+const uint8_t ANIM_MODE_EEP_ADDR = 0x00;
 
 // Mode adjustment / button:
 typedef enum AnimationMode {
@@ -173,6 +177,7 @@ void handleModeChange() {
 
   if (buttonPressed) {
     gotoNextMode();
+    saveAnimModeToEEPROM();
 
     // Disable the button for a while
     buttonDisableTimer = 0;
@@ -249,6 +254,21 @@ void stopDancing() {
   PORTB &= ~(1 << PIN_LIGHT);
 }
 
+void loadAnimModeFromEEPROM() {
+
+  uint8_t read_data = eeprom_read_byte((const uint8_t*)ANIM_MODE_EEP_ADDR);
+
+  // Load mode as current mode only if it's a valid mode
+  // Else let the default startup mode remain
+  if ((AnimationMode)read_data <= ANIM_LAST) {
+    currentAnimationMode = (AnimationMode)read_data;
+  }
+}
+
+void saveAnimModeToEEPROM() {
+  eeprom_write_byte((uint8_t*)ANIM_MODE_EEP_ADDR, (uint8_t)currentAnimationMode);
+}
+
 void setupTimers() {
   // Setup Timer0 interrupt for driving the electromagnet
   OCR0A = TIMER_TOP_PDM;
@@ -294,6 +314,9 @@ void setup() {
   PORTB |= ((1 << PB0) | (1 << PB1) | (1 << PB3) | (1 << PB4) | (1 << PB5));
   PORTC |= ((1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
   PORTD |= ((1 << PD0) | (1 << PD1) | (1 << PD5) | (1 << PD6) | (1 << PD7));
+
+  // Load the saved mode state from EEPROM
+  loadAnimModeFromEEPROM();
 
   setupTimers();
 }
