@@ -64,6 +64,7 @@ typedef enum AnimationMode {
   ANIM_MEDIUM,
   ANIM_POPLOCK,
   ANIM_DOUBLER,
+  ANIM_LIGHT_ONLY,
   ANIM_OFF,
 #ifdef DEBUG
   ANIM_FIRST = ANIM_FREEZE,
@@ -142,6 +143,10 @@ void gotoNextMode() {
       currentAnimationMode = ANIM_DOUBLER;
       break;
     case ANIM_DOUBLER:
+      currentAnimationMode = ANIM_LIGHT_ONLY;
+      stopMagnet();
+      break;
+    case ANIM_LIGHT_ONLY:
       currentAnimationMode = ANIM_OFF;
       stopDancing();
       break;
@@ -203,6 +208,10 @@ float calculateWaitFromMode() {
       float animationPhase = (float)cycleCounter / 3000.0f;
       return ZEROPOINT * 0.5 + 100.0 * sin(animationPhase);
     }
+    case ANIM_LIGHT_ONLY: {
+      // Turning off electromagnet is done at the transition (in gotoNextMode)
+      return ZEROPOINT;
+    }
     case ANIM_OFF: {
       // Turning off electromagnet and strobe is done at the transition (in gotoNextMode)
       return ZEROPOINT;
@@ -222,6 +231,12 @@ void startDancing() {
   // Enable light strobing
   PORTB |= (1 << PIN_LIGHT);
   DDRB |= (1 << PIN_LIGHT);
+}
+
+void stopMagnet() {
+  // Disable electromagnet drive
+  TCCR0B &= ~(1 << CS01); // Phase correct mode, clk/8, start the clock!
+  PORTD &= ~(1 << PIN_ENABLE);
 }
 
 void stopDancing() {
